@@ -6,7 +6,6 @@ use App\Actions\Events\CalculateRecurrenceDatesAction;
 use App\Actions\Events\ExtractYoutubeIdAction;
 use App\Actions\Events\ResolveSeriesDatesAction;
 use App\Enums\Events\EventCategoryEnum;
-use App\Enums\Events\EventOrganizerEnum;
 use App\Enums\Events\EventPublicationEnum;
 use App\Enums\Events\EventStatusEnum;
 use App\Enums\Events\HighlightEndEnum;
@@ -41,12 +40,6 @@ class EventRequest extends AdminFormRequest
 
         if ($ticketUrl !== '' && ! preg_match('#^https?://#i', $ticketUrl)) {
             $this->merge(['ticket_url' => 'https://'.$ticketUrl]);
-        }
-
-        $organizerWebsite = trim((string) $this->input('organizer_website'));
-
-        if ($organizerWebsite !== '' && ! preg_match('#^https?://#i', $organizerWebsite)) {
-            $this->merge(['organizer_website' => 'https://'.$organizerWebsite]);
         }
 
         $videoUrl = trim((string) $this->input('video_url'));
@@ -95,18 +88,6 @@ class EventRequest extends AdminFormRequest
                 fn (array $rules): array => ['exclude_unless:venue_id,'.self::NEW_VENUE, ...$rules],
                 $this->venueRules('venue_new_'),
             ),
-            'organizer' => ['required', Rule::enum(EventOrganizerEnum::class)],
-            ...array_map(fn (array $rules): array => ['exclude_unless:organizer,'.EventOrganizerEnum::External->value, ...$rules], [
-                'organizer_id' => ['nullable', 'integer', Rule::exists('organizers', 'id')],
-                'organizer_name' => ['required', 'string', 'max:150'],
-                'organizer_contact_person' => ['nullable', 'string', 'max:120'],
-                'organizer_street' => ['nullable', 'string', 'max:150'],
-                'organizer_zip' => ['nullable', 'string', 'max:10'],
-                'organizer_city' => ['nullable', 'string', 'max:100'],
-                'organizer_phone' => ['nullable', 'string', 'max:60'],
-                'organizer_email' => ['nullable', 'email', 'max:190'],
-                'organizer_website' => ['nullable', 'url:http,https', 'max:500'],
-            ]),
             ...$this->socialLinkRules(),
             'genres' => ['nullable', 'array', 'max:12'],
             'genres.*' => ['integer', Rule::exists('genres', 'id')],
@@ -166,9 +147,6 @@ class EventRequest extends AdminFormRequest
             ...$this->venueMessages('venue_new_'),
             'publish_date.*' => 'Bitte angeben, wann die Veranstaltung online gehen soll.',
             'publish_time.*' => 'Bitte angeben, wann die Veranstaltung online gehen soll.',
-            'organizer_name.required' => 'Bitte den Namen des Veranstalters eingeben.',
-            'organizer_email.email' => 'Bitte eine gültige E-Mail-Adresse angeben.',
-            'organizer_website.url' => 'Bitte einen gültigen Link angeben.',
             ...$this->socialLinkMessages(),
             'ticket_url.url' => 'Bitte einen gültigen Link angeben.',
             'image.image' => 'Bitte ein JPG-, PNG-, WebP-, GIF- oder AVIF-Bild hochladen.',
@@ -424,35 +402,6 @@ class EventRequest extends AdminFormRequest
         }
 
         return CarbonImmutable::createFromFormat('!Y-m-d H:i', $this->input('publish_date').' '.$this->input('publish_time'));
-    }
-
-    public function isExternal(): bool
-    {
-        return $this->input('organizer') === EventOrganizerEnum::External->value;
-    }
-
-    /**
-     * Gewählter Veranstalter aus den Stammdaten – leer bei „Neuer Veranstalter“.
-     */
-    public function organizerId(): ?int
-    {
-        return $this->isExternal() && filled($this->input('organizer_id')) ? (int) $this->input('organizer_id') : null;
-    }
-
-    /**
-     * Stammdaten des externen Veranstalters für die Tabelle organizers – null, wenn Libby Rockt! selbst veranstaltet.
-     *
-     * @return array<string, string|null>|null
-     */
-    public function organizerAttributes(): ?array
-    {
-        if (! $this->isExternal()) {
-            return null;
-        }
-
-        $fields = ['name', 'contact_person', 'street', 'zip', 'city', 'phone', 'email', 'website'];
-
-        return array_combine($fields, array_map(fn (string $field): ?string => $this->input('organizer_'.$field), $fields));
     }
 
     /**

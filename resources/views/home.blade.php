@@ -204,6 +204,7 @@
                 <div class="visit-item"><x-icon name="mail" /><div><strong>Kontakt</strong><a href="mailto:{{ config('libby.org.email') }}">{{ config('libby.org.email') }}</a></div></div>
                 <a class="btn btn-dark" href="{{ route('contact', ['thema' => 'booking']) }}"><x-icon name="send" /> Anfrage senden</a>
             </div>
+            <x-myownroadie-ad />
         </div>
     </section>
 </x-layouts.site>

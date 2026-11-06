@@ -13,6 +13,7 @@
         @method('PUT')
 @endif
         <x-admin.venue-fields :venue="$venue" :cities="$cities" />
+        <x-admin.venue-details :details="$venue?->details ?? []" />
         <div class="form-buttons">
             <button class="btn btn-accent" type="submit"><x-icon name="check" /> {{ $isEdit ? 'Änderungen speichern' : 'Location anlegen' }}</button>
             <a class="btn btn-ghost" href="{{ route('admin.venues.index') }}">Abbrechen</a>

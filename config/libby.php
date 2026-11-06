@@ -80,4 +80,20 @@ return [
         'slide_seconds' => 6,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Werbung: My Own Roadie
+    |--------------------------------------------------------------------------
+    |
+    | Kleine Anzeige unter dem Booking-Kasten der Startseite – Support-Bands
+    | finden über myownroadie.com. MYOWNROADIE_AD=false blendet sie aus.
+    |
+    */
+
+    'myownroadie' => [
+        'enabled' => (bool) env('MYOWNROADIE_AD', true),
+        'url' => env('MYOWNROADIE_URL', 'https://myownroadie.com'),
+        'register_url' => env('MYOWNROADIE_REGISTER_URL', 'https://myownroadie.com/registrieren'),
+    ],
+
 ];

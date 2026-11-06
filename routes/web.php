@@ -74,11 +74,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->parameters(['locations' => 'venue'])
             ->names('venues');
 
-        Route::resource('veranstalter', Admin\OrganizerController::class)
-            ->except('show')
-            ->parameters(['veranstalter' => 'organizer'])
-            ->names('organizers');
-
         Route::get('seiten/{page}', [Admin\PageController::class, 'edit'])->name('pages.edit');
         Route::put('seiten/{page}', [Admin\PageController::class, 'update'])->name('pages.update');
 

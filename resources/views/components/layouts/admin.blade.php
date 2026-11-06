@@ -8,7 +8,6 @@
         ['url' => route('admin.dashboard'), 'active' => request()->routeIs('admin.dashboard'), 'label' => 'Dashboard', 'icon' => 'dashboard'],
         ['url' => route('admin.events.index'), 'active' => request()->routeIs('admin.events.*'), 'label' => 'Veranstaltungen', 'icon' => 'calendar'],
         ['url' => route('admin.venues.index'), 'active' => request()->routeIs('admin.venues.*'), 'label' => 'Locations', 'icon' => 'venue'],
-        ['url' => route('admin.organizers.index'), 'active' => request()->routeIs('admin.organizers.*'), 'label' => 'Veranstalter', 'icon' => 'stage'],
         ['url' => route('admin.messages.index'), 'active' => request()->routeIs('admin.messages.*'), 'label' => 'Anfragen', 'icon' => 'inbox', 'badge' => $countUnreadMessages->execute()],
         ['url' => route('admin.pages.edit', PageEnum::Home), 'active' => $editedPage === PageEnum::Home, 'label' => 'Startseite', 'icon' => 'grid'],
         ['url' => route('admin.pages.edit', PageEnum::Contact), 'active' => $editedPage === PageEnum::Contact, 'label' => 'Kontaktseite', 'icon' => 'mail'],

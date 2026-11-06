@@ -30,6 +30,9 @@
 @endif
             </div>
             <div class="prow-status">
+@if ($venue->details)
+                <span class="tag" title="Angaben im Datenblatt"><x-icon name="list" /> {{ count($venue->details) }} {{ count($venue->details) === 1 ? 'Angabe' : 'Angaben' }}</span>
+@endif
                 <span class="tag">{{ $venue->upcoming_count }} kommend</span>
                 <span class="muted">{{ $venue->events_count }} gesamt</span>
             </div>

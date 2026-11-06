@@ -27,7 +27,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  */
 #[Fillable([
     'series_id', 'title', 'slug', 'subtitle', 'category', 'category_label', 'description',
-    'starts_at', 'doors_at', 'ends_at', 'venue_id', 'organizer_id', 'image_focus',
+    'starts_at', 'doors_at', 'ends_at', 'venue_id', 'image_focus',
     'ticket_url', 'social_links', 'video_url', 'price_presale', 'price_box', 'age_rating',
     'ticket_status', 'status', 'publish_at', 'is_featured', 'featured_from', 'featured_until',
     'featured_lead_days', 'created_by',
@@ -104,16 +104,6 @@ class Event extends Model implements HasMedia
     public function venue(): BelongsTo
     {
         return $this->belongsTo(Venue::class);
-    }
-
-    /**
-     * Externer Veranstalter – ohne Eintrag veranstaltet Libby Rockt! selbst.
-     *
-     * @return BelongsTo<Organizer, $this>
-     */
-    public function organizer(): BelongsTo
-    {
-        return $this->belongsTo(Organizer::class);
     }
 
     /**

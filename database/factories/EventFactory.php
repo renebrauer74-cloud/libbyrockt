@@ -8,7 +8,6 @@ use App\Enums\Events\ImageFocusEnum;
 use App\Enums\Events\TicketStatusEnum;
 use App\Enums\MediaCollectionEnum;
 use App\Models\Event;
-use App\Models\Organizer;
 use App\Models\Venue;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -68,11 +67,6 @@ class EventFactory extends Factory
     public function featured(): static
     {
         return $this->state(fn (array $attributes) => ['is_featured' => true]);
-    }
-
-    public function external(): static
-    {
-        return $this->state(fn (array $attributes) => ['organizer_id' => Organizer::factory()]);
     }
 
     public function past(): static

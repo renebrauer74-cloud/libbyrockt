@@ -17,7 +17,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\EventRequest;
 use App\Models\Event;
 use App\Models\Genre;
-use App\Models\Organizer;
 use App\Models\Venue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,7 +52,6 @@ class EventController extends Controller
             'event' => null,
             'template' => $template,
             'presetCategory' => $template?->category ?? $request->enum('art', EventCategoryEnum::class) ?? EventCategoryEnum::Konzert,
-            'organizers' => Organizer::query()->orderBy('name')->get(),
             'venues' => Venue::query()->orderBy('city')->orderBy('name')->get(),
             'genres' => Genre::query()->withCount('events')->orderBy('name')->get(),
             'seriesCount' => 0,
@@ -65,8 +63,6 @@ class EventController extends Controller
         $event = $saveEvent->execute(
             new Event,
             $request->eventAttributes(),
-            $request->organizerAttributes(),
-            $request->organizerId(),
             $request->file('image'),
             false,
             $request->user(),
@@ -94,7 +90,6 @@ class EventController extends Controller
             'event' => $event,
             'template' => null,
             'presetCategory' => $event->category,
-            'organizers' => Organizer::query()->orderBy('name')->get(),
             'venues' => Venue::query()->orderBy('city')->orderBy('name')->get(),
             'genres' => Genre::query()->withCount('events')->orderBy('name')->get(),
             'seriesCount' => $event->isSeries() ? $event->seriesEvents()->count() : 0,
@@ -106,8 +101,6 @@ class EventController extends Controller
         $saveEvent->execute(
             $event,
             $request->eventAttributes(),
-            $request->organizerAttributes(),
-            $request->organizerId(),
             $request->file('image'),
             $request->boolean('remove_image'),
             $request->user(),

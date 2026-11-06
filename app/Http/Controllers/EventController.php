@@ -60,7 +60,7 @@ class EventController extends Controller
     public function show(Event $event): View
     {
         $this->ensureVisible($event);
-        $event->load(['genres', 'venue', 'organizer']);
+        $event->load(['genres', 'venue']);
 
         return view('events.show', [
             'event' => $event,

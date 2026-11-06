@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Actions\Venues\NormalizeWebsiteAction;
 use App\Enums\Social\SocialPlatformEnum;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -57,13 +58,13 @@ abstract class AdminFormRequest extends FormRequest
     }
 
     /**
-     * Location-Felder bereinigen: Leerraum zusammenfassen, Caps-Lock-ß, Website mit https://.
+     * Location-Felder bereinigen: Leerraum zusammenfassen, Caps-Lock-ß, Website frei eingetippt → Link mit http(s)://.
      */
     protected function prepareVenueFields(string $prefix = ''): void
     {
         $clean = [];
 
-        foreach (['name', 'city', 'street', 'zip', 'website'] as $field) {
+        foreach (['name', 'city', 'street', 'zip'] as $field) {
             if (is_string($this->input($prefix.$field))) {
                 $clean[$prefix.$field] = trim((string) preg_replace('/\s+/u', ' ', $this->input($prefix.$field)));
             }
@@ -73,10 +74,8 @@ abstract class AdminFormRequest extends FormRequest
             $clean[$prefix.'name'] = normalize_caps($clean[$prefix.'name']);
         }
 
-        $website = $clean[$prefix.'website'] ?? '';
-
-        if ($website !== '' && ! preg_match('#^https?://#i', $website)) {
-            $clean[$prefix.'website'] = 'https://'.$website;
+        if (is_string($this->input($prefix.'website'))) {
+            $clean[$prefix.'website'] = (new NormalizeWebsiteAction)->execute($this->input($prefix.'website'));
         }
 
         $this->merge($clean);
@@ -94,9 +93,9 @@ abstract class AdminFormRequest extends FormRequest
             $prefix.'city' => ['required', 'string', 'max:80'],
             $prefix.'street' => ['nullable', 'string', 'max:150'],
             $prefix.'zip' => ['nullable', 'string', 'regex:/^[0-9A-Za-z -]{3,10}$/'],
-            $prefix.'website' => ['nullable', 'url:http,https', 'max:300', function (string $attribute, mixed $value, Closure $fail): void {
-                if (! str_contains((string) parse_url((string) $value, PHP_URL_HOST), '.')) {
-                    $fail('Bitte einen gültigen Link angeben.');
+            $prefix.'website' => ['nullable', 'string', 'max:300', function (string $attribute, mixed $value, Closure $fail): void {
+                if (! (new NormalizeWebsiteAction)->looksValid((string) $value)) {
+                    $fail('Das sieht noch nicht nach einer Website aus – z. B. turbinenhalle.de');
                 }
             }],
         ];
@@ -114,7 +113,6 @@ abstract class AdminFormRequest extends FormRequest
             $prefix.'city.max' => 'Maximal 80 Zeichen.',
             $prefix.'street.max' => 'Maximal 150 Zeichen.',
             $prefix.'zip.regex' => 'Ungültige Postleitzahl.',
-            $prefix.'website.url' => 'Bitte einen gültigen Link angeben.',
             $prefix.'website.max' => 'Der Link ist zu lang.',
         ];
     }

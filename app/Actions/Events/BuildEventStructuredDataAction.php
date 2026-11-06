@@ -42,11 +42,11 @@ class BuildEventStructuredDataAction
                     'addressCountry' => 'DE',
                 ]),
             ] : null,
-            'organizer' => array_filter([
+            'organizer' => [
                 '@type' => 'Organization',
-                'name' => $event->organizer?->name ?? config('libby.org.name'),
-                'url' => $event->organizer ? $event->organizer->website : config('app.url'),
-            ]),
+                'name' => config('libby.org.name'),
+                'url' => config('app.url'),
+            ],
             'url' => route('events.show', $event),
         ];
 

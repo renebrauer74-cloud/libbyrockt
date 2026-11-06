@@ -56,7 +56,6 @@ function eventFormData(array $overrides = []): array
         'venue_id' => array_key_exists('venue_id', $overrides)
             ? $overrides['venue_id']
             : (string) (Venue::query()->value('id') ?? Venue::factory()->create(['name' => 'Zeche Bochum', 'city' => 'Bochum'])->getKey()),
-        'organizer' => 'libby',
         'image_focus' => 'center',
         'ticket_url' => 'https://tickets.example.com/steel',
         'price_presale' => '24 €',

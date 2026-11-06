@@ -34,6 +34,25 @@ it('creates a location with a slug from name and city', function () {
         ->website->toBe('https://www.turbinenhalle.de');
 });
 
+it('accepts the website however it is typed', function (string $typed, string $stored) {
+    actingAsAdmin()->post(route('admin.venues.store'), [
+        'name' => 'Turbinenhalle',
+        'city' => 'Oberhausen',
+        'website' => $typed,
+    ])->assertSessionHasNoErrors();
+
+    expect(Venue::query()->sole()->website)->toBe($stored);
+})->with([
+    'ohne alles' => ['turbinenhalle.de', 'https://turbinenhalle.de'],
+    'mit www' => ['www.turbinenhalle.de', 'https://www.turbinenhalle.de'],
+    'mit http' => ['http://turbinenhalle.de', 'http://turbinenhalle.de'],
+    'www vor http' => ['www.http://turbinenhalle.de', 'http://turbinenhalle.de'],
+    'ohne Doppelpunkt' => ['https//www.turbinenhalle.de/', 'https://www.turbinenhalle.de/'],
+    'groß und mit Leerzeichen' => [' HTTPS://www.turbinenhalle.de/programm ', 'https://www.turbinenhalle.de/programm'],
+    'doppelt' => ['https://http://turbinenhalle.de', 'http://turbinenhalle.de'],
+    'Domain mit http am Anfang' => ['httpbin.org', 'https://httpbin.org'],
+]);
+
 it('does not repeat the city in the slug when the name contains it', function () {
     actingAsAdmin()->post(route('admin.venues.store'), ['name' => 'Zeche Bochum', 'city' => 'Bochum']);
 
@@ -68,6 +87,64 @@ it('updates a location and keeps its own name when checking duplicates', functio
     ])->assertSessionHasNoErrors();
 
     expect($venue->fresh()->street)->toBe('Hauptstraße 200');
+});
+
+it('saves a self-built data sheet and drops empty rows', function () {
+    actingAsAdmin()->post(route('admin.venues.store'), [
+        'name' => 'Turbinenhalle',
+        'city' => 'Oberhausen',
+        'details' => [
+            ['label' => ' Bühnengröße ', 'value' => ' 10 × 8 m '],
+            ['label' => 'Strom', 'value' => ''],
+            ['label' => 'Mein eigenes Feld', 'value' => "Zeile 1\nZeile 2"],
+        ],
+    ])->assertSessionHasNoErrors();
+
+    expect(Venue::query()->sole()->details)->toBe([
+        ['label' => 'Bühnengröße', 'value' => '10 × 8 m'],
+        ['label' => 'Mein eigenes Feld', 'value' => "Zeile 1\nZeile 2"],
+    ]);
+});
+
+it('needs a label when a data sheet value is filled in', function () {
+    actingAsAdmin()->post(route('admin.venues.store'), [
+        'name' => 'Turbinenhalle',
+        'city' => 'Oberhausen',
+        'details' => [['label' => '', 'value' => '63 A CEE']],
+    ])->assertSessionHasErrors('details.0.label');
+
+    expect(Venue::query()->count())->toBe(0);
+});
+
+it('clears the data sheet when all rows are removed', function () {
+    $venue = Venue::factory()->create([
+        'name' => 'Matrix',
+        'city' => 'Bochum',
+        'details' => [['label' => 'Kapazität', 'value' => '800']],
+    ]);
+
+    actingAsAdmin()->put(route('admin.venues.update', $venue), ['name' => 'Matrix', 'city' => 'Bochum'])
+        ->assertSessionHasNoErrors();
+
+    expect($venue->fresh()->details)->toBeNull();
+});
+
+it('shows the data sheet with its menu in the admin only', function () {
+    $venue = Venue::factory()->create([
+        'name' => 'Matrix',
+        'city' => 'Bochum',
+        'details' => [['label' => 'Bühnengröße', 'value' => '8 × 6 m']],
+    ]);
+
+    actingAsAdmin()->get(route('admin.venues.edit', $venue))
+        ->assertOk()
+        ->assertSee('Datenblatt')
+        ->assertSee('value="Bühnengröße"', false)
+        ->assertSee('8 × 6 m')
+        ->assertSee('Eigenes Feld')
+        ->assertSee('data-label="Backline"', false);
+
+    $this->get(route('admin.venues.index'))->assertSee('1 Angabe');
 });
 
 it('deletes a location and keeps its events', function () {

@@ -18,6 +18,27 @@ it('renders every public page with demo data', function (string $routeName) {
     $this->get(route($routeName))->assertOk()->assertDontSee('Matrix Bochum');
 })->with(['home', 'events.index', 'venues.index', 'contact']);
 
+it('advertises my own roadie for support bands below the booking box', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('Anzeige')
+        ->assertSee('Wir suchen Support-Bands!')
+        ->assertSee('href="https://myownroadie.com/registrieren" target="_blank" rel="noopener"', false);
+});
+
+it('hides the my own roadie ad when it is switched off', function () {
+    config(['libby.myownroadie.enabled' => false]);
+
+    $this->get(route('home'))->assertOk()->assertDontSee('myownroadie.com');
+});
+
+it('keeps the location data sheet off the public pages', function () {
+    $venue = Venue::factory()->create(['name' => 'Turbinenhalle', 'details' => [['label' => 'Ansprechpartner:in', 'value' => 'Geheime Hausnummer 0815']]]);
+    Event::factory()->for($venue)->create();
+
+    $this->get(route('venues.index'))->assertOk()->assertSee($venue->name)->assertDontSee('Geheime Hausnummer 0815');
+});
+
 it('links the locations page in the main navigation and marks it active there', function () {
     $response = $this->get(route('venues.index'))->assertOk();
 

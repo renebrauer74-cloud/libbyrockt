@@ -77,7 +77,7 @@
 @if ($event->age_rating)
                             <div><dt><x-icon name="user" /> Einlass</dt><dd>{{ $event->age_rating }}</dd></div>
 @endif
-                            <div><dt><x-icon name="users" /> Veranstalter</dt><dd>{{ $event->organizer?->name ?? config('libby.org.name') }}</dd></div>
+                            <div><dt><x-icon name="users" /> Veranstalter</dt><dd>{{ config('libby.org.name') }}</dd></div>
                         </dl>
 
                         <div class="event-actions">

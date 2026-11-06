@@ -1,6 +1,5 @@
 @php
     use App\Enums\Events\EventCategoryEnum;
-    use App\Enums\Events\EventOrganizerEnum;
     use App\Enums\Events\EventPublicationEnum;
     use App\Enums\Events\HighlightEndEnum;
     use App\Enums\Events\HighlightStartEnum;
@@ -23,9 +22,6 @@
     $newVenue = EventRequest::NEW_VENUE;
     $venueValue = (string) old('venue_id', $source?->venue_id ?? ($venues->count() === 1 ? $venues->first()->getKey() : ''));
     $venuesByCity = $venues->groupBy('city');
-    $organizer = $source?->organizer;
-    $organizerMode = old('organizer', $organizer ? EventOrganizerEnum::External->value : EventOrganizerEnum::Libby->value);
-    $organizerId = (string) old('organizer_id', $organizer?->getKey());
     $imageUrl = $source?->getFirstMediaUrl(MediaCollectionEnum::Events->value, MediaConversionEnum::Medium->value) ?: null;
     $videoMedia = $source?->getFirstMedia(MediaCollectionEnum::EventVideo->value);
     $status = old('status', match (true) {
@@ -266,40 +262,9 @@
                 <x-admin.field-error name="repeat_dates.*" />
             </section>
 
-            {{-- Veranstalter --}}
-            <section class="panel form-section">
-                <h2 class="form-section-title"><span>5</span> Veranstalter</h2>
-                <div class="segmented segmented-full organizer-toggle" role="radiogroup" aria-label="Wer veranstaltet?">
-@foreach (EventOrganizerEnum::cases() as $option)
-                    <label><input type="radio" name="organizer" value="{{ $option->value }}" @checked($organizerMode === $option->value)><span><x-icon :name="$option === EventOrganizerEnum::Libby ? 'star' : 'users'" /> {{ $option->label() }}</span></label>
-@endforeach
-                </div>
-                <x-admin.field-error name="organizer" />
-
-                <div class="organizer-fields" data-organizer-fields @if ($organizerMode !== EventOrganizerEnum::External->value) hidden @endif>
-                    <div class="field{{ $hasError('organizer_id') }}">
-                        <label for="organizer_id">Angelegten Veranstalter auswählen</label>
-@if ($organizers->isNotEmpty())
-                        <select id="organizer_id" name="organizer_id" data-organizer-select>
-                            <option value="">– keiner, neuen Veranstalter unten eintragen –</option>
-@foreach ($organizers as $option)
-                            <option value="{{ $option->getKey() }}" data-organizer="{{ json_encode($option->only($option->getFillable())) }}" @selected($organizerId === (string) $option->getKey())>{{ $option->name }}{{ $option->city ? ' · '.$option->city : '' }}</option>
-@endforeach
-                        </select>
-                        <x-admin.field-error name="organizer_id" />
-                        <p class="hint">Aus dem Menü <a class="link" href="{{ route('admin.organizers.index') }}" target="_blank" rel="noopener">Veranstalter</a>. Änderungen unten gelten für alle Veranstaltungen dieses Veranstalters.</p>
-@else
-                        <p class="hint">Noch keine Veranstalter angelegt – einfach unten eintragen, er wird dann für weitere Veranstaltungen gespeichert.</p>
-@endif
-                    </div>
-                    <h3 class="organizer-subtitle" data-organizer-subtitle data-text-new="Neuen Veranstalter eintragen" data-text-existing="Stammdaten des gewählten Veranstalters">{{ $organizerId !== '' && $organizers->contains('id', (int) $organizerId) ? 'Stammdaten des gewählten Veranstalters' : 'Neuen Veranstalter eintragen' }}</h3>
-                    <x-admin.organizer-fields :organizer="$organizer" prefix="organizer_" />
-                </div>
-            </section>
-
             {{-- Bild & Video --}}
             <section class="panel form-section">
-                <h2 class="form-section-title"><span>6</span> Bild &amp; Video</h2>
+                <h2 class="form-section-title"><span>5</span> Bild &amp; Video</h2>
                 <div class="dropzone{{ $imageUrl ? ' has-image' : '' }}{{ $hasError('image') }}" data-dropzone>
                     <img class="dropzone-preview" src="{{ $imageUrl }}" alt="" data-dropzone-img @unless ($imageUrl) hidden @endunless>
                     <div class="dropzone-empty">
@@ -357,7 +322,7 @@
 
             {{-- Tickets --}}
             <section class="panel form-section">
-                <h2 class="form-section-title"><span>7</span> Tickets &amp; Einlass</h2>
+                <h2 class="form-section-title"><span>6</span> Tickets &amp; Einlass</h2>
                 <div class="field{{ $hasError('ticket_url') }}">
                     <label for="ticket_url">Ticket-Link</label>
                     <input id="ticket_url" name="ticket_url" type="url" inputmode="url" maxlength="500" value="{{ old('ticket_url', $source?->ticket_url) }}" placeholder="https://…">
@@ -399,8 +364,8 @@
 
             {{-- Social Media --}}
             <section class="panel form-section">
-                <h2 class="form-section-title"><span>8</span> Social Media</h2>
-                <p class="hint social-intro">Links zu Künstlern, Bands oder Veranstaltern – dieselbe Plattform darf mehrfach vorkommen.</p>
+                <h2 class="form-section-title"><span>7</span> Social Media</h2>
+                <p class="hint social-intro">Links zu Künstlern und Bands – dieselbe Plattform darf mehrfach vorkommen.</p>
                 <x-admin.social-links-field :links="$source?->social_links ?? []" />
             </section>
         </div>

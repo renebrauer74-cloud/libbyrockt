@@ -375,6 +375,31 @@ fieldset.field legend { padding: 0; margin-bottom: 7px; }
     .social-row input { grid-column: 1 / -1; grid-row: 2; }
 }
 
+/* Location-Datenblatt (Felder aus dem Menü oder eigene) */
+.venue-details { margin: 8px 0 18px; padding-top: 20px; border-top: 1px solid var(--line); }
+.venue-details .panel-title .muted { font-weight: 500; }
+.venue-details > .hint { margin: -8px 0 14px; }
+.detail-rows { display: grid; gap: 8px; }
+.detail-row { display: grid; grid-template-columns: 210px minmax(0, 1fr) auto; gap: 8px; align-items: start; }
+.detail-row input { font-weight: 600; }
+.detail-row textarea { min-height: 46px; resize: vertical; }
+.detail-row .field-error { grid-column: 1 / -1; margin: 0; }
+.detail-empty { margin-bottom: 4px; }
+.detail-menu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.detail-chip {
+    display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 11px;
+    border-radius: 99px; border: 1px dashed var(--line-strong); background: var(--panel);
+    color: var(--muted); font: 600 .8rem var(--font-body); cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+}
+.detail-chip .icon { width: 14px; height: 14px; }
+.detail-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.detail-chip[hidden] { display: none; }
+.detail-chip-own { border-style: solid; color: var(--accent); border-color: rgba(225, 10, 30, .35); }
+@media (max-width: 600px) {
+    .detail-row { grid-template-columns: minmax(0, 1fr) auto; }
+    .detail-row textarea { grid-column: 1 / -1; grid-row: 2; }
+}
+
 .field-highlight { padding: 14px; border-radius: 12px; background: color-mix(in srgb, var(--c-sonstiges) 7%, transparent); border: 1px dashed color-mix(in srgb, var(--c-sonstiges) 50%, transparent); }
 
 /* Dropzone */

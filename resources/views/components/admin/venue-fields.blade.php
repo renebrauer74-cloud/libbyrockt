@@ -32,7 +32,8 @@
     </div>
     <div @class(['field', 'has-error' => $errors->has($prefix.'website')])>
         <label for="{{ $prefix }}website">Website</label>
-        <input id="{{ $prefix }}website" name="{{ $prefix }}website" type="url" maxlength="300" value="{{ old($prefix.'website', $venue?->website) }}" placeholder="https://…">
+        <input id="{{ $prefix }}website" name="{{ $prefix }}website" type="text" inputmode="url" autocapitalize="off" spellcheck="false" maxlength="300" value="{{ old($prefix.'website', $venue?->website) }}" placeholder="z. B. turbinenhalle.de">
         <x-admin.field-error :name="$prefix.'website'" />
+        <p class="hint">Einfach eintippen – mit oder ohne www. und http://.</p>
     </div>
 </div>

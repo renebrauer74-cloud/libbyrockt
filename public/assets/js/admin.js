@@ -90,6 +90,39 @@
         });
     });
 
+    // --- Location-Datenblatt: Felder aus dem Menü oder eigene hinzufügen und entfernen ----
+    $$('[data-venue-details]').forEach((box) => {
+        const rows = box.querySelector('[data-detail-rows]');
+        const template = box.querySelector('[data-detail-template]');
+        const empty = box.querySelector('[data-detail-empty]');
+        let next = Number(box.dataset.nextIndex) || 0;
+        // Schon genutzte Vorschläge aus dem Menü ausblenden
+        const refresh = () => {
+            empty.hidden = rows.children.length > 0;
+            const taken = $$('[data-detail-label]', rows).map((input) => input.value.trim().toLowerCase());
+            $$('[data-detail-preset]', box).forEach((chip) => { chip.hidden = taken.includes(chip.dataset.label.toLowerCase()); });
+        };
+        const add = (label = '', placeholder = '') => {
+            rows.insertAdjacentHTML('beforeend', template.innerHTML.replaceAll('__INDEX__', String(next++)));
+            const row = rows.lastElementChild;
+            const labelInput = row.querySelector('[data-detail-label]');
+            const value = row.querySelector('[data-detail-value]');
+            labelInput.value = label;
+            if (placeholder) value.placeholder = placeholder;
+            (label ? value : labelInput).focus();
+            refresh();
+        };
+        box.addEventListener('click', (e) => {
+            const preset = e.target.closest('[data-detail-preset]');
+            const remove = e.target.closest('[data-detail-remove]');
+            if (preset) add(preset.dataset.label, preset.dataset.placeholder);
+            else if (e.target.closest('[data-detail-add]')) add();
+            else if (remove) { remove.closest('[data-detail-row]').remove(); refresh(); }
+        });
+        rows.addEventListener('input', (e) => { if (e.target.matches('[data-detail-label]')) refresh(); });
+        refresh();
+    });
+
     // --- Event-Formular ----------------------------------------------------------------
     const form = $('[data-event-form]');
     if (!form) return;
@@ -139,27 +172,6 @@
         const opt = venueSelect.selectedOptions[0];
         return opt && opt.value ? (opt.dataset.label || opt.textContent.trim()) : '';
     };
-
-    // Veranstalter: Libby Rockt! oder extern – bei extern Stammdaten anzeigen
-    const organizerFields = $('[data-organizer-fields]');
-    const organizerSelect = $('[data-organizer-select]');
-    const updateOrganizer = () => {
-        const external = ($('input[name="organizer"]:checked') || {}).value === 'external';
-        organizerFields.hidden = !external;
-    };
-    $$('input[name="organizer"]').forEach((r) => r.addEventListener('change', () => {
-        updateOrganizer();
-        if (!organizerFields.hidden) (organizerSelect?.value ? organizerSelect : $('#organizer_name')).focus();
-    }));
-    // Gespeicherten Veranstalter gewählt: Stammdaten eintragen, „Neuer Veranstalter“: Felder leeren
-    organizerSelect?.addEventListener('change', () => {
-        const data = JSON.parse(organizerSelect.selectedOptions[0]?.dataset.organizer || '{}');
-        $$('[data-organizer-field]').forEach((input) => { input.value = data[input.dataset.organizerField] || ''; });
-        const subtitle = $('[data-organizer-subtitle]');
-        if (subtitle) subtitle.textContent = organizerSelect.value ? subtitle.dataset.textExisting : subtitle.dataset.textNew;
-        if (!organizerSelect.value) $('#organizer_name').focus();
-    });
-    if (organizerFields) updateOrganizer();
 
     // Veröffentlichung „Geplant“: Datum und Uhrzeit einblenden
     const publishAt = $('[data-publish-at]');
