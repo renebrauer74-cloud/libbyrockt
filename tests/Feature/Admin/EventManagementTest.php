@@ -55,6 +55,32 @@ it('creates an event with slug, image and author', function () {
         ->and($event->getFirstMedia(MediaCollectionEnum::Events->value))->not->toBeNull();
 });
 
+it('accepts images up to 100 MB', function () {
+    actingAsAdmin()
+        ->post(route('admin.events.store'), eventFormData(['image' => UploadedFile::fake()->image('flyer.jpg', 1200, 1600)->size(90 * 1024)]))
+        ->assertSessionDoesntHaveErrors('image');
+
+    $this->post(route('admin.events.store'), eventFormData(['image' => UploadedFile::fake()->image('riesig.jpg', 1200, 1600)->size(101 * 1024)]))
+        ->assertSessionHasErrors(['image' => 'Das Bild ist größer als 100 MB.']);
+});
+
+it('rejects images with too many pixels instead of crashing while converting them', function () {
+    config(['libby.uploads.image_max_megapixels' => 1]);
+
+    actingAsAdmin()
+        ->post(route('admin.events.store'), eventFormData(['image' => UploadedFile::fake()->image('poster.jpg', 1200, 1000)]))
+        ->assertSessionHasErrors('image');
+
+    expect(Event::query()->count())->toBe(0);
+});
+
+it('tells the browser how far to shrink large images before uploading', function () {
+    actingAsAdmin()->get(route('admin.events.create'))
+        ->assertOk()
+        ->assertSee('data-max-bytes="'.(100 * 1024 * 1024).'" data-max-pixels="3200"', false)
+        ->assertSee('max. 100 MB');
+});
+
 it('requires the kind of event for other events', function () {
     actingAsAdmin()
         ->post(route('admin.events.store'), eventFormData(['category' => 'sonstiges', 'category_label' => '']))

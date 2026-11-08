@@ -272,7 +272,8 @@
                         <strong>Bild hierher ziehen oder <u>auswählen</u></strong>
                         <span>JPG, PNG, WebP · max. {{ config('libby.uploads.max_kilobytes') / 1024 }} MB · wird automatisch optimiert</span>
                     </div>
-                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" data-dropzone-input aria-label="Bild auswählen">
+                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" data-dropzone-input aria-label="Bild auswählen"
+                           data-max-bytes="{{ config('libby.uploads.max_kilobytes') * 1024 }}" data-max-pixels="{{ config('libby.uploads.image_max_pixels') }}">
                 </div>
                 <x-admin.field-error name="image" />
                 <div class="image-options" data-image-options @unless ($imageUrl) hidden @endunless>

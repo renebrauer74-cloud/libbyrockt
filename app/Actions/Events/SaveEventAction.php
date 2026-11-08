@@ -71,11 +71,28 @@ class SaveEventAction
     private function saveMedia(Event $event, MediaCollectionEnum $collection, ?UploadedFile $file, bool $remove, ?Event $template): void
     {
         if ($file !== null) {
+            if ($collection === MediaCollectionEnum::Events) {
+                $this->allowMemoryForImageConversions();
+            }
             $event->addMedia($file)->toMediaCollection($collection->value);
         } elseif ($remove) {
             $event->clearMediaCollection($collection->value);
         } elseif ($template !== null && ! $event->hasMedia($collection->value)) {
             $template->getFirstMedia($collection->value)?->copy($event, $collection->value);
+        }
+    }
+
+    /**
+     * Die WebP-Varianten werden direkt beim Speichern berechnet (GD hält das Bild unkomprimiert im Speicher).
+     * Ein knapp eingestelltes memory_limit wird dafür auf 384 MB angehoben – nie gesenkt.
+     */
+    private function allowMemoryForImageConversions(): void
+    {
+        $needed = 384 * 1024 * 1024;
+        $current = ini_parse_quantity((string) ini_get('memory_limit'));
+
+        if ($current !== -1 && $current < $needed) {
+            ini_set('memory_limit', '384M');
         }
     }
 }

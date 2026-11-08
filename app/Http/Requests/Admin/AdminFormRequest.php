@@ -6,6 +6,7 @@ use App\Actions\Venues\NormalizeWebsiteAction;
 use App\Enums\Social\SocialPlatformEnum;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 
 /**
@@ -39,7 +40,25 @@ abstract class AdminFormRequest extends FormRequest
             'mimes:jpg,jpeg,png,gif,webp,avif',
             'max:'.config('libby.uploads.max_kilobytes'),
             'dimensions:min_width=200,min_height=200',
+            $this->megapixelRule(),
         ];
+    }
+
+    /**
+     * Schutz für den Server: Normalerweise verkleinert der Browser große Bilder vorher.
+     * Kommt doch ein Riesenbild an, gibt es eine Meldung statt eines Absturzes beim Umrechnen.
+     */
+    private function megapixelRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            $size = $value instanceof UploadedFile ? @getimagesize($value->getRealPath()) : false;
+            $limit = (int) config('libby.uploads.image_max_megapixels');
+
+            if ($size !== false && $limit * 1_000_000 < $size[0] * $size[1]) {
+                $fail('Das Bild hat zu viele Pixel ('.round($size[0] * $size[1] / 1_000_000).' Megapixel, max. '.$limit
+                    .'). Bitte im Browser neu laden und erneut auswählen – dann wird es automatisch verkleinert.');
+            }
+        };
     }
 
     /**

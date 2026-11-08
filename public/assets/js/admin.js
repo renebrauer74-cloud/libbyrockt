@@ -479,15 +479,61 @@
         if (pvImg) { pvImg.src = src || ''; pvImg.hidden = !src; pvFallback.hidden = !!src; }
     };
 
-    const handleFile = (file) => {
-        if (!file) return;
-        if (!/^image\//.test(file.type)) { alert('Bitte eine Bilddatei auswählen.'); dzInput.value = ''; return; }
-        const max = 12 * 1024 * 1024;
-        if (file.size > max) { alert('Das Bild ist größer als 12 MB.'); dzInput.value = ''; return; }
+    // Große Bilder schon im Browser verkleinern: der Upload wird klein und schnell, der Server
+    // (512 MB RAM) muss keine 100-MB-Fotos umrechnen. GIFs bleiben unangetastet (Animation).
+    const maxBytes = Number(dzInput?.dataset.maxBytes) || 100 * 1024 * 1024;
+    const maxPixels = Number(dzInput?.dataset.maxPixels) || 3200;
+    const SHRINK_FROM_BYTES = 4 * 1024 * 1024;
+    let shrinking = null;
+
+    const toBlob = (canvas, type, quality) => new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+
+    const shrinkImage = async (file) => {
+        if (file.type === 'image/gif' || typeof createImageBitmap !== 'function') return file;
+        const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        const scale = Math.min(1, maxPixels / Math.max(bitmap.width, bitmap.height));
+        if (scale === 1 && file.size <= SHRINK_FROM_BYTES) { bitmap.close?.(); return file; }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; // transparente PNGs bekommen bei JPG einen weißen statt schwarzen Hintergrund
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close?.();
+
+        let blob = await toBlob(canvas, 'image/webp', 0.9);
+        if (!blob || blob.type !== 'image/webp') blob = await toBlob(canvas, 'image/jpeg', 0.9);
+        if (!blob || blob.size >= file.size) return file;
+        const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
+        return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.' + ext, { type: blob.type, lastModified: Date.now() });
+    };
+
+    const showImage = (file) => {
         const reader = new FileReader();
         reader.onload = () => setImage(reader.result);
         reader.readAsDataURL(file);
+    };
+
+    const handleFile = (file) => {
+        if (!file) return;
+        if (!/^image\//.test(file.type)) { alert('Bitte eine Bilddatei auswählen.'); dzInput.value = ''; return; }
+        if (file.size > maxBytes) { alert(`Das Bild ist größer als ${Math.round(maxBytes / 1048576)} MB.`); dzInput.value = ''; return; }
         if (removeBox) { removeBox.checked = false; dz.classList.remove('is-removed'); }
+
+        dz.classList.add('is-busy');
+        shrinking = shrinkImage(file)
+            .catch(() => file) // Format, das der Browser nicht lesen kann → Original hochladen
+            .then((result) => {
+                if (result !== file) {
+                    const dt = new DataTransfer();
+                    dt.items.add(result);
+                    dzInput.files = dt.files;
+                }
+                showImage(result);
+            })
+            .finally(() => { dz.classList.remove('is-busy'); shrinking = null; });
     };
     dzInput?.addEventListener('change', () => handleFile(dzInput.files[0]));
     ['dragenter', 'dragover'].forEach((t) => dz?.addEventListener(t, (e) => { e.preventDefault(); dz.classList.add('is-over'); }));
@@ -562,6 +608,13 @@
     form.addEventListener('input', () => { dirty = true; });
     form.addEventListener('change', () => { dirty = true; });
     form.addEventListener('submit', (e) => {
+        // Bild wird noch verkleinert → kurz warten und dann mit demselben Button erneut absenden
+        if (shrinking) {
+            e.preventDefault();
+            const submitter = e.submitter;
+            shrinking.finally(() => form.requestSubmit(submitter && submitter.form === form ? submitter : undefined));
+            return;
+        }
         // Pflichtfeld "Sonstiges" clientseitig prüfen
         if (currentCat() === 'sonstiges' && !labelInput.value.trim()) {
             e.preventDefault();

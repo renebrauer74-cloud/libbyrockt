@@ -40,7 +40,14 @@ return [
     */
 
     'uploads' => [
-        'max_kilobytes' => 12 * 1024,
+        // Event-Bilder: bis 100 MB auswählbar. Große Bilder verkleinert der Browser vor dem Hochladen
+        // auf max. `image_max_pixels` an der längsten Seite – so bleibt der Upload schnell und der
+        // Server (Laravel Cloud, 512 MB RAM) muss keine Riesenbilder umrechnen.
+        'max_kilobytes' => 100 * 1024,
+        'image_max_pixels' => 3200,
+
+        // Sicherheitsnetz auf dem Server, falls ein Bild unverkleinert ankommt (Arbeitsspeicher beim Umrechnen)
+        'image_max_megapixels' => 25,
 
         // Eigene Event-Videos und Videos auf gepflegten Seiten (MP4, WebM, MOV)
         'video_max_kilobytes' => 100 * 1024,
