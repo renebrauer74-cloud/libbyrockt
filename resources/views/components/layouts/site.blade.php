@@ -22,6 +22,7 @@
     <meta property="og:image" content="{{ $ogImage ?? asset('assets/img/logo.png') }}">
     <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
+    <x-theme-script />
     <link rel="preload" href="{{ asset('assets/fonts/anton-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ versioned_asset('assets/css/site.css') }}">
     <script src="{{ versioned_asset('assets/js/site.js') }}" defer></script>

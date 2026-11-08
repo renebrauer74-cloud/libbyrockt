@@ -7,9 +7,11 @@
     <meta name="robots" content="noindex, nofollow">
     <title>{{ $title }} – {{ config('app.name') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
+    <x-theme-script key="libby-theme-admin" />
     <link rel="stylesheet" href="{{ versioned_asset('assets/css/admin.css') }}">
 </head>
 <body class="blank-body">
+    <x-theme-toggle class="auth-theme" />
     {{ $slot }}
 </body>
 </html>

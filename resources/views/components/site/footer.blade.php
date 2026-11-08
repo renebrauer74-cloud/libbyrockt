@@ -25,8 +25,9 @@
         <div>
             <h2 class="footer-title">Entdecken</h2>
             <ul class="footer-nav">
-                <li><a href="{{ route('events.index') }}">Programm</a></li>
                 <li><a href="{{ route('events.index', 'konzerte') }}">Konzerte</a></li>
+                <li><a href="{{ route('events.index', 'partys') }}">Partys</a></li>
+                <li><a href="{{ route('events.index') }}">Alle Termine</a></li>
                 <li><a href="{{ route('venues.index') }}">Locations</a></li>
                 <li><a href="{{ route('contact') }}">Kontakt</a></li>
             </ul>

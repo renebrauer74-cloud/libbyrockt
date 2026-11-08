@@ -39,6 +39,36 @@ it('keeps the location data sheet off the public pages', function () {
     $this->get(route('venues.index'))->assertOk()->assertSee($venue->name)->assertDontSee('Geheime Hausnummer 0815');
 });
 
+it('offers concerts and parties instead of the whole programme in the main navigation', function () {
+    Event::factory()->category(EventCategoryEnum::Konzert)->create(['title' => 'Metal-Abend']);
+    Event::factory()->category(EventCategoryEnum::Party)->create(['title' => 'Clubnacht']);
+
+    $nav = fn (string $html): string => str($html)->between('<nav class="main-nav"', '</nav>')->toString();
+
+    $home = $this->get(route('home'))->assertOk()->getContent();
+    expect($nav($home))
+        ->toContain('>Konzerte</a>', '>Partys</a>')
+        ->not->toContain('>Programm</a>');
+
+    $partys = $this->get(route('events.index', 'partys'))->assertOk()->assertSee('Clubnacht')->assertDontSee('Metal-Abend');
+    expect($nav($partys->getContent()))
+        ->toMatch('~href="'.preg_quote(route('events.index', 'partys'), '~').'"\s+aria-current="page"\s*>Partys</a>~');
+});
+
+it('offers a light and dark mode on the website and in the admin', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('data-theme-toggle', false)
+        ->assertSee('localStorage.getItem(key)', false)
+        ->assertSee("key = 'libby-theme'", false);
+
+    actingAsAdmin()->get(route('admin.dashboard'))
+        ->assertOk()
+        ->assertSee('data-theme-toggle', false)
+        ->assertSee("key = 'libby-theme-admin'", false)
+        ->assertSee('Dunkles Design');
+});
+
 it('links the locations page in the main navigation and marks it active there', function () {
     $response = $this->get(route('venues.index'))->assertOk();
 

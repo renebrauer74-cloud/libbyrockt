@@ -29,6 +29,7 @@
     <title>{{ $title }} – Libby Rockt! Admin</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
+    <x-theme-script key="libby-theme-admin" />
     <link rel="stylesheet" href="{{ versioned_asset('assets/css/admin.css') }}">
     <script src="{{ versioned_asset('assets/js/admin.js') }}" defer></script>
 </head>
@@ -45,6 +46,7 @@
 @endforeach
         </nav>
         <div class="sidebar-foot">
+            <x-theme-toggle :label="true" />
             <a href="{{ route('home') }}" target="_blank" rel="noopener"><x-icon name="external" /> Website ansehen</a>
             <form method="post" action="{{ route('admin.logout') }}">
                 @csrf

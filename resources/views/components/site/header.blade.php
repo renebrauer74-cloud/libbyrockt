@@ -1,8 +1,8 @@
 @php
-    $categoryPage = request()->routeIs('events.index') && request()->route('kategorie') !== null;
+    $categoryActive = fn (string $slug): bool => request()->routeIs('events.index') && request()->route('kategorie') === $slug;
     $nav = [
-        ['url' => route('events.index'), 'label' => 'Programm', 'active' => request()->routeIs('events.index') && ! $categoryPage],
-        ['url' => route('events.index', 'konzerte'), 'label' => 'Konzerte', 'active' => request()->routeIs('events.index') && request()->route('kategorie') === 'konzerte'],
+        ['url' => route('events.index', 'konzerte'), 'label' => 'Konzerte', 'active' => $categoryActive('konzerte')],
+        ['url' => route('events.index', 'partys'), 'label' => 'Partys', 'active' => $categoryActive('partys')],
         ['url' => route('venues.index'), 'label' => 'Locations', 'active' => request()->routeIs('venues.index')],
         ['url' => route('contact'), 'label' => 'Kontakt', 'active' => request()->routeIs('contact')],
     ];
@@ -25,6 +25,8 @@
                 <x-icon name="ticket" /> Tickets
             </a>
         </nav>
+
+        <x-theme-toggle class="theme-btn" />
 
         <button class="nav-toggle" type="button" aria-controls="main-nav" aria-expanded="false" data-nav-toggle>
             <span class="sr-only">Menü</span>
