@@ -29,19 +29,20 @@
                 @csrf
                 <div @class(['field', 'has-error' => $errors->has('name')])>
                     <label for="u-name">Name</label>
-                    <input id="u-name" name="name" required value="{{ old('name') }}">
+                    <input id="u-name" name="name" required value="{{ old('name') }}" autocomplete="off" data-1p-ignore data-lpignore="true">
                     <x-admin.field-error name="name" />
                 </div>
                 <div @class(['field', 'has-error' => $errors->has('email')])>
                     <label for="u-email">E-Mail</label>
-                    <input id="u-email" name="email" type="email" required value="{{ old('email') }}">
+                    <input id="u-email" name="email" type="email" required value="{{ old('email') }}" autocomplete="off" data-1p-ignore data-lpignore="true">
                     <x-admin.field-error name="email" />
                 </div>
                 <div @class(['field', 'has-error' => $errors->has('password')])>
-                    <label for="u-pass">Passwort</label>
-                    <input id="u-pass" name="password" type="password" minlength="10" required autocomplete="new-password">
+                    <label for="u-pass">Start-Passwort</label>
+                    {{-- Sichtbares Textfeld statt type="password": So trägt der Browser nicht das eigene Login-Passwort ein. --}}
+                    <input id="u-pass" name="password" type="text" minlength="10" required autocomplete="off" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true">
                     <x-admin.field-error name="password" />
-                    <p class="hint">Mindestens 10 Zeichen. Der Benutzer kann es danach unter „Mein Konto“ ändern.</p>
+                    <p class="hint">Mindestens 10 Zeichen, gut sichtbar zum Abschreiben. Gib es dem neuen Benutzer weiter – er kann es danach unter „Mein Konto“ ändern.</p>
                 </div>
                 <button class="btn btn-accent" type="submit"><x-icon name="plus" /> Benutzer anlegen</button>
             </form>

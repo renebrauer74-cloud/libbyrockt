@@ -18,6 +18,17 @@ it('creates a user with a lowercase email', function () {
     expect(Hash::check('lang-genug-1', $user->password))->toBeTrue();
 });
 
+it('keeps the browser from filling in the own login when creating a user', function () {
+    $form = str(actingAsAdmin()->get(route('admin.users.index'))->assertOk()->getContent())
+        ->after('Neuen Benutzer anlegen')
+        ->toString();
+
+    expect($form)
+        ->not->toContain('type="password"')
+        ->toContain('id="u-pass" name="password" type="text"')
+        ->toContain('id="u-email" name="email" type="email" required value="" autocomplete="off"');
+});
+
 it('rejects short passwords and taken emails', function () {
     User::factory()->create(['email' => 'vergeben@libbyrockt.de']);
 
